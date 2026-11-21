@@ -225,18 +225,20 @@ private fun processImage(
 
                 val now = System.currentTimeMillis()
 
-                if (detectedCodes.isEmpty()) {
+
+                if (detectedCodes.size != 1) {
 
                     if (lastEmptyScanTime.get() == 0L) {
                         lastEmptyScanTime.set(now)
                     }
 
-                    // Kód musí zmizet z obrazu alespoň na 2 sekundy,
-                    // než dovolíme jeho opětovné naskenování.
+                    // Pokud alespoň 2 sekundy nevidíme právě jeden jednoznačný kód,
+                    // povolíme skenování dalšího trackable.
                     if (now - lastEmptyScanTime.get() >= 2000L) {
                         lastEmittedCode.set(null)
-                        scanConfirmation.observe(emptySet())
                     }
+
+                    scanConfirmation.observe(detectedCodes)
 
                     return@addOnSuccessListener
                 }
@@ -244,6 +246,7 @@ private fun processImage(
                 lastEmptyScanTime.set(0L)
 
                 val confirmedCode = scanConfirmation.observe(detectedCodes)
+
 
                 if (confirmedCode != null) {
 
